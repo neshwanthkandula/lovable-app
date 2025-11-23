@@ -15,6 +15,12 @@ import { Command } from "lucide-react";
 import {z } from "zod"
 import { PROMPT } from "@/prompt";
 import { prettyPrintLastAssistantMessage, lastAssistantTextMessageContent } from "@/inngest/utils"
+import { prisma } from "../../lib/prisma";
+
+interface AgentState {
+  summary : string,
+  files : { [path : string] : string}
+};
 
 export const helloWorld = inngest.createFunction(
   { id: "hello-world" },
@@ -25,7 +31,7 @@ export const helloWorld = inngest.createFunction(
       return sandbox.sandboxId;
     })
 
-    const codeagent = createAgent({
+    const codeagent = createAgent<AgentState>({
       name: "code-agent",
       description : "An expert coding agent",
       system: PROMPT,
@@ -72,12 +78,17 @@ export const helloWorld = inngest.createFunction(
             })
           ),
         }),
-        handler: async ({ files }, { network }) => {
+        handler: async ({ files }, { network } : Tool.Options<AgentState>) => {
           try {
             const sandbox = await getSandbox(sandboxId);
             for (const file of files) {
               await sandbox.files.write(file.path, file.content);
             }
+            network.state.data.files = Object.fromEntries(
+              files.map(f => [f.path, f.content])
+            );
+
+
             return `Files created or updated: ${files
               .map((f) => f.path)
               .join(", ")}`;
@@ -132,7 +143,7 @@ export const helloWorld = inngest.createFunction(
 
     });
 
-      const network = createNetwork({
+      const network = createNetwork<AgentState>({
         name: "coding-agent-network",
         agents: [codeagent],
         maxIter: 15,
@@ -157,6 +168,22 @@ export const helloWorld = inngest.createFunction(
     return `https://${host}`;
   })
 
+  await step.run("save-result", async()=>{
+    return await prisma.message.create({
+      data : {
+        content : result.state.data.summary,
+        role : "ASSISTANT",
+        type : "RESULT",
+        fragment : {
+          create : {
+            sandboxUrl : sandboxUrl,
+            title : "Fragment",
+            file : result.state.data.files,
+          }
+        }
+      }
+    })
+  })
     return { 
       url : sandboxUrl, 
       title :  " Fragments",
