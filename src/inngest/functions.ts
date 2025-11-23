@@ -11,7 +11,10 @@ import {
 import { inngest } from "./client";
 import { Sandbox } from "@e2b/code-interpreter"
 import { getSandbox } from "./utils";
-
+import { Command } from "lucide-react";
+import {z } from "zod"
+import { PROMPT } from "@/prompt";
+import { prettyPrintLastAssistantMessage, lastAssistantTextMessageContent } from "@/inngest/utils"
 
 export const helloWorld = inngest.createFunction(
   { id: "hello-world" },
@@ -21,22 +24,144 @@ export const helloWorld = inngest.createFunction(
       const sandbox = await Sandbox.create("vibe-nextjs-test-0000")
       return sandbox.sandboxId;
     })
-     // Create a new agent with a system prompt (you can add optional tools, too)
+
     const codeagent = createAgent({
-      name: "writer",
-      system: "You are an expert next.js developer.  You write readable, maintainable code.you write simple next.js snippets ,like Button && React snippets",
+      name: "code-agent",
+      description : "An expert coding agent",
+      system: PROMPT,
       model: gemini({model : "gemini-2.0-flash"}),
+      tools: [
+      // terminal use
+      createTool({
+        name: "terminal",
+        description: "Use the terminal to run commands",
+        parameters: z.object({
+          command: z.string(),
+        }),
+        handler: async ({ command }, { network }) => {
+          const buffers = { stdout: "", stderr: "" };
+
+          try {
+            const sandbox = await getSandbox(sandboxId);
+            const result = await sandbox.commands.run(command, {
+              onStdout: (data: string) => {
+                buffers.stdout += data;
+              },
+              onStderr: (data: string) => {
+                buffers.stderr += data;
+              },
+            });
+            return result.stdout;
+          } catch (e) {
+            console.error(
+              `Command failed: ${e} \nstdout: ${buffers.stdout}\nstderr: ${buffers.stderr}`
+            );
+            return `Command failed: ${e} \nstdout: ${buffers.stdout}\nstderr: ${buffers.stderr}`;
+          }
+        },
+      }),
+      // create or update file
+      createTool({
+        name: "createOrUpdateFiles",
+        description: "Create or update files in the sandbox",
+        parameters: z.object({
+          files: z.array(
+            z.object({
+              path: z.string(),
+              content: z.string(),
+            })
+          ),
+        }),
+        handler: async ({ files }, { network }) => {
+          try {
+            const sandbox = await getSandbox(sandboxId);
+            for (const file of files) {
+              await sandbox.files.write(file.path, file.content);
+            }
+            return `Files created or updated: ${files
+              .map((f) => f.path)
+              .join(", ")}`;
+          } catch (e) {
+            return "Error: " + e;
+          }
+        },
+      }),
+
+      //read file
+      createTool({
+        name: "readFiles",
+        description: "Read files from the sandbox",
+        parameters: z.object({
+          files: z.array(z.string()),
+        }),
+        handler: async ({ files }, { network }) => {
+          console.log("readFiles <", files);
+          try {
+            const sandbox = await getSandbox(sandboxId);
+            const contents = [];
+            for (const file of files) {
+              const content = await sandbox.files.read(file);
+              contents.push({ path: file, content });
+            }
+            return JSON.stringify(contents);
+          } catch (e) {
+            console.error("error", e);
+            return "Error: " + e;
+          }
+        },
+      }),
+    ],
+
+    lifecycle: {
+      onResponse: async ({ result, network }) => {
+        // prettyPrintLastAssistantMessage(result);
+
+        const lastAssistantMessageText =
+          lastAssistantTextMessageContent(result);
+
+        if (lastAssistantMessageText && network) {
+          if (lastAssistantMessageText.includes("<task_summary>")) {
+            network.state.data.summary =  lastAssistantMessageText ;
+
+          }
+        }
+
+        return result;
+      },
+    },
+
     });
 
-    const { output } = await codeagent.run(
-  `Write the following snippet : ${event.data.email}`,);
+      const network = createNetwork({
+        name: "coding-agent-network",
+        agents: [codeagent],
+        maxIter: 15,
+        router: ({ network }) => {
+          const summary = network.state.data.summary;
 
-const sandboxUrl = await step.run("get-sandbox-url", async()=>{
+          if(summary){
+            return ;
+          }
+
+          return codeagent;
+        },
+      });
+
+
+    const result = await network.run(event.data.email);
+
+
+    const sandboxUrl = await step.run("get-sandbox-url", async()=>{
     const sandbox = await getSandbox(sandboxId);
     const host = sandbox.getHost(3000);
     return `https://${host}`;
   })
 
-    return { output , sandboxUrl };
+    return { 
+      url : sandboxUrl, 
+      title :  " Fragments",
+      files : result.state.data.files,
+      summary : result.state.data.summary,
+    };
   },
 );
