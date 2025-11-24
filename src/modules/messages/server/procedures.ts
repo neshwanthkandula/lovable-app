@@ -19,6 +19,7 @@ export const meassagesRouter = createTRPCRouter({
     .input(
         z.object({
             value : z.string().min(1, { message : "message is required"}),
+            projectId : z.string().min(1, { message : "projectId is required"}),
         }),
     )
 
@@ -27,15 +28,16 @@ export const meassagesRouter = createTRPCRouter({
             data : {
                 content : input.value,
                 role : "USER",
-                type : "RESULT"
-
+                type : "RESULT",
+                projectId : input.projectId
             }
         })
 
         await inngest.send({
             name : "test/hello.world",
             data : {
-                email : input.value,
+                value : input.value,
+                projectId : input.projectId
             }
         })
     

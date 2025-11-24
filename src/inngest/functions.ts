@@ -159,7 +159,7 @@ export const helloWorld = inngest.createFunction(
       });
 
 
-    const result = await network.run(event.data.email);
+    const result = await network.run(event.data.value);
 
     const isError = !result.state.data.summary || Object.keys(result.state.data.files || {}).length === 0;
 
@@ -173,6 +173,7 @@ export const helloWorld = inngest.createFunction(
     if(isError){
       return await prisma.message.create({
         data : {
+          projectId : event.data.projectId,
           content: "Something went wrong.please try again.",
           role : "ASSISTANT",
           type : "ERROR"
@@ -181,6 +182,7 @@ export const helloWorld = inngest.createFunction(
     }
     return await prisma.message.create({
       data : {
+        projectId : event.data.projectId,
         content : result.state.data.summary,
         role : "ASSISTANT",
         type : "RESULT",
@@ -188,7 +190,7 @@ export const helloWorld = inngest.createFunction(
           create : {
             sandboxUrl : sandboxUrl,
             title : "Fragment",
-            file : result.state.data.files,
+            files : result.state.data.files,
           }
         }
       }
