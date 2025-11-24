@@ -4,21 +4,16 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { useTRPC } from "@/trpc/client"
 import { dehydrate, HydrationBoundary, QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { MessagesContainer } from "../components/messages-container";
-import { Suspense } from "react";
-
+import { Suspense, useState } from "react";
+import { Fragment } from "@prisma/client";
+import { ProjectHeader } from "../components/project-header";
 interface Props {
     projectId : string
 }
 
 export const Projectview = ({ projectId } : Props)=>{
+    const [activeFragment, setActiveFragment ] = useState<Fragment | null>(null);
     const trpc = useTRPC();
-    // const { data  : project} = useSuspenseQuery(trpc.projects.getOne.queryOptions({
-    //     id : projectId
-    // }))
-
-    // const { data : messages } = useSuspenseQuery(trpc.messages.getMany.queryOptions({
-    //     projectId,
-    // }))
     return <div className="h-screen">
         <ResizablePanelGroup direction="horizontal">
             <ResizablePanel 
@@ -27,7 +22,13 @@ export const Projectview = ({ projectId } : Props)=>{
             className="flex flex-col min-h-0"
             >
                 <Suspense fallback={<p>Loading messages...</p>}>
-                    <MessagesContainer projectId={projectId}/>
+                    <ProjectHeader projectId={projectId} />
+                </Suspense>
+                <Suspense fallback={<p>Loading messages...</p>}>
+                    <MessagesContainer projectId={projectId}
+                    activeFragment = {activeFragment}
+                    setActiveFragment = {setActiveFragment}
+                    />
                 </Suspense>
             </ResizablePanel>
 

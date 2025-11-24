@@ -12,7 +12,7 @@ interface Props{
 
 const page = async ({ params } : Props)=>{
     const { projectid } = await params;
-    console.log(projectid);
+    
     const queryClient = await getQueryClient();
 
     // void queryClient.prefetchQuery(trpc.messages.getMany.queryOptions({

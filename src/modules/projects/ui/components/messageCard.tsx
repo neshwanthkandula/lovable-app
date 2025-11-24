@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { ChevronRightIcon, Code2Icon } from "lucide-react";
 
+
 interface UserMessageProps{
     content : string
 }
