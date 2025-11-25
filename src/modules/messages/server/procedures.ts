@@ -12,7 +12,6 @@ export const meassagesRouter = createTRPCRouter({
         }),
     )
     .query(async ({ input })=>{
-        console.log("messages ***** " + input.projectId);
         const messages = await prisma.message.findMany({
             where : {
                 projectId : input.projectId
@@ -25,7 +24,6 @@ export const meassagesRouter = createTRPCRouter({
             }
         })
 
-        console.log("messages result" , messages)
 
         return messages;
     }),
