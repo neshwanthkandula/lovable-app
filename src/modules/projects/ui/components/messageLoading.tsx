@@ -3,12 +3,12 @@ import { useState, useEffect} from "react"
 
 const ShimmerMessages =()=>{
     const messages = [
-        "THinking....",
+        "Thinking....",
         "Loading....",
         "Generating....",
         "Analyzing your request...",
-        "Building tour website....",
-        "crafting loadComponents...",
+        "Building your website....",
+        "Crafting Components...",
         "Optimizing Layout....",
         "Adding final touches....",
         "Almost Ready.....",
