@@ -4,6 +4,7 @@ import { dehydrate, HydrationBoundary, QueryClient, useSuspenseQuery } from "@ta
 import { Projectview } from "@/modules/projects/ui/views/project-view";
 import { Suspense } from "react";
 import { prisma } from "../../../../lib/prisma";
+import { ErrorBoundary } from "react-error-boundary";
 interface Props{
     params : Promise<{
         projectid : string
@@ -24,9 +25,11 @@ const page = async ({ params } : Props)=>{
     // }))
     return(
         <HydrationBoundary state = { dehydrate(queryClient)}>
-            <Suspense fallback={<p>Loading..</p>}>
-            <Projectview projectId={projectid}/>
-            </Suspense>
+            <ErrorBoundary fallback={<p>Loading....</p>}>
+                <Suspense fallback={<p>Loading..</p>}>
+                <Projectview projectId={projectid}/>
+                </Suspense>
+            </ErrorBoundary>
         </HydrationBoundary>
     )
 }

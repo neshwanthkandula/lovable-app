@@ -1,35 +1,20 @@
-
 import { Sandbox } from "@e2b/code-interpreter";
-import {
-  AgentResult,
-  Message,
-  NetworkRun,
-  TextMessage,
-} from "@inngest/agent-kit";
+import { AgentResult, Message, TextMessage } from "@inngest/agent-kit";
 
-export function prettyPrintLastAssistantMessage(result: AgentResult) {
-  const lastAssistantMessageIndex = result.output.findLastIndex(
-    (message) => message.role === "assistant",
-  );
-  const message = result.output[lastAssistantMessageIndex] as
-    | Message
-    | undefined;
-  if (message) {
-    if (message.type === "tool_call") {
-      console.log("Agent response > ", `tool call (${message.tools[0].name})`);
-    } else if (message.type === "text" && message.content) {
-      console.log("Agent response > ", message.content);
-    }
-  }
+export async function getSandbox(sandboxId: string) {
+  const sandbox = await Sandbox.connect(sandboxId);
+  return sandbox;
 }
 
 export function lastAssistantTextMessageContent(result: AgentResult) {
-  const lastAssistantMessageIndex = result.output.findLastIndex(
-    (message) => message.role === "assistant"
+  const lastAssistantTextMessageIndex = result.output.findLastIndex(
+    (message) => message.role === "assistant",
   );
-  const message = result.output[lastAssistantMessageIndex] as
+
+  const message = result.output[lastAssistantTextMessageIndex] as
     | TextMessage
     | undefined;
+
   return message?.content
     ? typeof message.content === "string"
       ? message.content
@@ -37,7 +22,41 @@ export function lastAssistantTextMessageContent(result: AgentResult) {
     : undefined;
 }
 
-export async function getSandbox(sandboxId : string){
-    const sandbox = await Sandbox.connect(sandboxId)
-    return sandbox;
-}
+export const parseAgentOutput = (value: any): string => {
+  // Handle string input directly
+  if (typeof value === "string") {
+    return value;
+  }
+
+  // Handle array of Messages (from agent output)
+  if (Array.isArray(value)) {
+    const output = value[0];
+    
+    if (!output) {
+      return "Fragment";
+    }
+
+    if (output.type !== "text") {
+      return "Fragment";
+    }
+
+    if (Array.isArray(output.content)) {
+      return output.content.map((txt: any) => txt.text || txt).join("");
+    } else {
+      return output.content || "Fragment";
+    }
+  }
+
+  // Handle single Message object
+  if (value && typeof value === "object") {
+    if (value.type === "text") {
+      if (Array.isArray(value.content)) {
+        return value.content.map((txt: any) => txt.text || txt).join("");
+      } else {
+        return value.content || "Fragment";
+      }
+    }
+  }
+
+  return "Fragment";
+};
