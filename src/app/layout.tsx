@@ -5,12 +5,7 @@ import { TRPCReactProvider } from "@/trpc/client";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
 import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
+  ClerkProvider
 } from '@clerk/nextjs'
 
 const geistSans = Geist({
@@ -36,7 +31,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <TRPCReactProvider>
-        <html lang="en" suppressContentEditableWarning>
+        <html lang="en">
           <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased`}
           >

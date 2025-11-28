@@ -23,7 +23,7 @@ export interface FileProps{
 const Page = () => {
   const Tree = new FileExplorer();
   Tree.processFileInput(sampleFileInput);
-  let root = Tree.getTree();
+  const root = Tree.getTree();
   
   const [clicked, setClicked] = useState<Record<string, boolean>>({});
   const [file , setFile] = useState<FileProps>({filecontent : "", filepath : ""});

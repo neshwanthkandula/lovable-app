@@ -20,7 +20,6 @@ import {
     BreadcrumbSeparator,
     BreadcrumbEllipsis
 } from "@/components/ui/breadcrumb"
-import { minSize } from "zod";
 import { convertFilesToTreeItems } from "@/lib/utils";
 
 type FileCollection = { [path : string] : string};

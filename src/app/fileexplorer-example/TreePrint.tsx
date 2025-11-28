@@ -1,6 +1,7 @@
+
 import { TreeNode } from "./classexplorer"
 import { FileProps } from "./page"
-import { ChevronRight, ChevronDown } from "lucide-react"; // Import the icons
+// import { ChevronRight, ChevronDown } from "lucide-react"; // Import the icons
 
 interface Props {
     curr: TreeNode,
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export const TreePrint = ({ curr, clicked, setClicked, file, setFile }: Props) => {
+    
     return <div>
         <div className="p-2">
             <button onClick={() => {
