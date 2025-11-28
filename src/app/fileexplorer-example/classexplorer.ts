@@ -1,33 +1,4 @@
-export const sampleFileInput = {
-  'documents/file1.txt': `{
-  "pipelineId": "user-query-processing",
-  "executionId": "exec_7x2b9k83n1p",
-  "status": "completed",
-  "duration": 12.2,
-  "input": {
-    "query": "Summarize the quarterly sales report and identify top performing products",
-    "documents": ["q3-sales.pdf", "product-catalog.pdf"]
-  },
-  "output": {
-    "summary": "Q3 2024 showed 15% revenue growth quarter-over-quarter...",
-    "topProducts": [
-      {"name": "Cloud Platform Enterprise", "revenue": "$1.2M", "growth": "22%"}
-    ],
-    "insights": ["Enterprise contracts are driving majority of growth"]
-  },
-  "metadata": {
-    "model": "gpt-4",
-    "tokenUsage": 14287,
-    "cost": 0.43,
-    "confidence": 0.94
-  }
-}`,
-  'documents/file2.txt': 'Content of file 2',
-  'documents/file3.txt': 'Content of file 3',
-  'documents/src/a.jsx': 'Content of file a',
-  'documents/src/b.jsx' : 'content of file b',
-  'documents/ui/ux.ts' : 'content of file ux'
-};
+
 
 export interface TreeNode {
   id: string;
