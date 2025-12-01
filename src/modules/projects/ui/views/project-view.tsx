@@ -19,7 +19,7 @@ interface Props {
 
 export const Projectview = ({ projectId } : Props)=>{
     const [activeFragment, setActiveFragment ] = useState<Fragment | null>(null);
-    const [tabState, setTabState] =  useState<"preview" | "code">("preview")
+    const [tabState, setTabState] =  useState<"preview" | "code" | "selectFragment">("selectFragment")
     const trpc = useTRPC();
     return <div className="h-screen">
         <ResizablePanelGroup direction="horizontal">
@@ -76,6 +76,14 @@ export const Projectview = ({ projectId } : Props)=>{
                                 </FileExplorer>
                             )
                         }
+                    </TabsContent>
+
+                    <TabsContent value="selectFragment">
+                        <div className="flex justify-center items-center w-full h-full">
+                            <div className="text-3xl text-gray-400">
+                                Click Fragment to view code or Demo.......
+                            </div>
+                        </div>
                     </TabsContent>
                 </Tabs>
             </ResizablePanel>
